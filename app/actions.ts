@@ -1,10 +1,10 @@
 "use server";
 
-import fs from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
 import { ProteinSource } from '@/types/recipe';
 import { isAdmin, login, logout } from '@/lib/auth';
+import { commitToGithub, deleteFromGithub } from '@/lib/github';
 
 export async function handleLogin(password: string) {
     const success = await login(password);
@@ -20,37 +20,21 @@ export async function handleLogout() {
     revalidatePath('/');
 }
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public/uploads/recipes');
-
 async function handleImageUpload(image: File | null, slug: string): Promise<string | null> {
     if (!image || image.size === 0) {
-        console.log('No image provided or image is empty.');
         return null;
     }
 
     try {
         const extension = image.name.split('.').pop() || 'jpg';
         const fileName = `${slug}-${Date.now()}.${extension}`;
-        const filePath = path.join(UPLOAD_DIR, fileName);
 
-        console.log(`[UPLOAD] Starting upload of ${image.name} (${image.size} bytes)`);
-        console.log(`[UPLOAD] Destination: ${filePath}`);
+        // Use Vercel Blob instead of local fs
+        const blob = await put(`recipes/${fileName}`, image, {
+            access: 'public',
+        });
 
-        // Ensure directory exists
-        await fs.mkdir(UPLOAD_DIR, { recursive: true });
-        console.log(`[UPLOAD] Directory verified: ${UPLOAD_DIR}`);
-
-        // Convert and write
-        const arrayBuffer = await image.arrayBuffer();
-        const buffer = Buffer.from(new Uint8Array(arrayBuffer));
-        await fs.writeFile(filePath, buffer);
-        console.log(`[UPLOAD] File written successfully.`);
-
-        // Double check existence
-        const stats = await fs.stat(filePath);
-        console.log(`[UPLOAD] Verified on disk: ${stats.size} bytes`);
-
-        return `/uploads/recipes/${fileName}`;
+        return blob.url;
     } catch (error) {
         console.error('[UPLOAD] CRITICAL ERROR:', error);
         return null;
@@ -119,8 +103,9 @@ date: "${date}"
 ${content}
 `;
 
-        const filePath = path.join(process.cwd(), 'content/recipes', `${slug}.mdx`);
-        await fs.writeFile(filePath, mdxContent, 'utf8');
+        // Use GitHub API instead of local fs
+        const githubPath = `content/recipes/${slug}.mdx`;
+        await commitToGithub(githubPath, mdxContent, `Add/Update recipe: ${title}`);
 
         revalidatePath('/');
         revalidatePath(`/recipes/${slug}`);
@@ -140,13 +125,9 @@ export async function deleteRecipe(slug: string) {
     }
 
     try {
-        const filePath = path.join(process.cwd(), 'content/recipes', `${slug}.mdx`);
-
-        // Delete the recipes file
-        await fs.unlink(filePath);
-
-        // Optional: We could also delete associated images if we tracked them better,
-        // but for now let's just clean the MDX.
+        // Use GitHub API instead of local fs
+        const githubPath = `content/recipes/${slug}.mdx`;
+        await deleteFromGithub(githubPath, `Delete recipe: ${slug}`);
 
         revalidatePath('/');
         return { success: true };
