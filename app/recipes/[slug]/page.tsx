@@ -10,6 +10,8 @@ interface PageProps {
     params: Promise<{ slug: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function generateStaticParams() {
     const recipes = await getAllRecipes();
     return recipes.map((recipe) => ({

@@ -44,9 +44,36 @@ export async function getProteinSources(): Promise<string[]> {
 export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
     try {
         const fullPath = path.join(recipesDirectory, `${slug}.mdx`);
-        if (!fs.existsSync(fullPath)) return null;
+        let fileContents: string;
 
-        const fileContents = fs.readFileSync(fullPath, 'utf8');
+        if (fs.existsSync(fullPath)) {
+            fileContents = fs.readFileSync(fullPath, 'utf8');
+        } else {
+            // Fallback to GitHub API if local file doesn't exist yet (e.g. during build delay)
+            const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+            const GITHUB_REPO = process.env.GITHUB_REPO;
+            const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
+
+            if (!GITHUB_TOKEN || !GITHUB_REPO) {
+                console.warn('GitHub credentials missing for fallback fetch');
+                return null;
+            }
+
+            const response = await fetch(
+                `https://api.github.com/repos/${GITHUB_REPO}/contents/content/recipes/${slug}.mdx?ref=${GITHUB_BRANCH}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3.raw',
+                    },
+                    next: { revalidate: 0 } // Don't cache this fallback
+                }
+            );
+
+            if (!response.ok) return null;
+            fileContents = await response.text();
+        }
+
         const { data, content } = matter(fileContents);
 
         return {
@@ -55,6 +82,7 @@ export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
             content,
         };
     } catch (error) {
+        console.error(`Error fetching recipe ${slug}:`, error);
         return null;
     }
 }
