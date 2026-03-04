@@ -9,7 +9,7 @@ export async function getAllRecipes(): Promise<RecipeFrontmatter[]> {
     const localFileNames = fs.existsSync(recipesDirectory) ? fs.readdirSync(recipesDirectory) : [];
 
     // Get local recipes
-    const localRecipes = localFileNames
+    const localRecipes: RecipeFrontmatter[] = localFileNames
         .filter((fileName) => fileName.endsWith('.mdx'))
         .map((fileName) => {
             const fullPath = path.join(recipesDirectory, fileName);
@@ -20,7 +20,7 @@ export async function getAllRecipes(): Promise<RecipeFrontmatter[]> {
                 ...(data as RecipeFrontmatter),
                 slug: data.slug || fileName.replace(/\.mdx$/, ''),
                 meal_types: data.meal_types || [],
-                image_url: data.image_url || null,
+                image_url: data.image_url || undefined,
             };
         });
 
@@ -63,8 +63,8 @@ export async function getAllRecipes(): Promise<RecipeFrontmatter[]> {
                                 ...(data as RecipeFrontmatter),
                                 slug: data.slug || f.name.replace(/\.mdx$/, ''),
                                 meal_types: data.meal_types || [],
-                                image_url: data.image_url || null,
-                            };
+                                image_url: data.image_url || undefined,
+                            } as RecipeFrontmatter;
                         }));
                         githubRecipes = fetched.filter(Boolean) as RecipeFrontmatter[];
                     }
@@ -76,7 +76,7 @@ export async function getAllRecipes(): Promise<RecipeFrontmatter[]> {
     }
 
     // Merge and deduplicate by slug
-    const allRecipesData = [...localRecipes];
+    const allRecipesData: RecipeFrontmatter[] = [...localRecipes];
     githubRecipes.forEach(gr => {
         if (!allRecipesData.find(lr => lr.slug === gr.slug)) {
             allRecipesData.push(gr);
