@@ -6,12 +6,10 @@ import { Recipe, RecipeFrontmatter } from '@/types/recipe';
 const recipesDirectory = path.join(process.cwd(), 'content/recipes');
 
 export async function getAllRecipes(): Promise<RecipeFrontmatter[]> {
-    if (!fs.existsSync(recipesDirectory)) {
-        return [];
-    }
+    const localFileNames = fs.existsSync(recipesDirectory) ? fs.readdirSync(recipesDirectory) : [];
 
-    const fileNames = fs.readdirSync(recipesDirectory);
-    const allRecipesData = fileNames
+    // Get local recipes
+    const localRecipes = localFileNames
         .filter((fileName) => fileName.endsWith('.mdx'))
         .map((fileName) => {
             const fullPath = path.join(recipesDirectory, fileName);
@@ -25,6 +23,65 @@ export async function getAllRecipes(): Promise<RecipeFrontmatter[]> {
                 image_url: data.image_url || null,
             };
         });
+
+    // GitHub Fallback for new recipes NOT in local filesystem
+    let githubRecipes: RecipeFrontmatter[] = [];
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    const GITHUB_REPO = process.env.GITHUB_REPO;
+    const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
+
+    if (GITHUB_TOKEN && GITHUB_REPO) {
+        try {
+            const response = await fetch(
+                `https://api.github.com/repos/${GITHUB_REPO}/contents/content/recipes?ref=${GITHUB_BRANCH}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                    },
+                    next: { revalidate: 0 }
+                }
+            );
+
+            if (response.ok) {
+                const files = await response.json();
+                if (Array.isArray(files)) {
+                    const mdxFiles = files.filter(f => f.name.endsWith('.mdx'));
+
+                    // Find files that aren't local
+                    const missingFiles = mdxFiles.filter(f => !localFileNames.includes(f.name));
+
+                    if (missingFiles.length > 0) {
+                        const fetched = await Promise.all(missingFiles.map(async (f) => {
+                            const detailRes = await fetch(f.download_url, {
+                                next: { revalidate: 0 }
+                            });
+                            if (!detailRes.ok) return null;
+                            const content = await detailRes.text();
+                            const { data } = matter(content);
+                            return {
+                                ...(data as RecipeFrontmatter),
+                                slug: data.slug || f.name.replace(/\.mdx$/, ''),
+                                meal_types: data.meal_types || [],
+                                image_url: data.image_url || null,
+                            };
+                        }));
+                        githubRecipes = fetched.filter(Boolean) as RecipeFrontmatter[];
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching recipes from GitHub:', error);
+        }
+    }
+
+    // Merge and deduplicate by slug
+    const allRecipesData = [...localRecipes];
+    githubRecipes.forEach(gr => {
+        if (!allRecipesData.find(lr => lr.slug === gr.slug)) {
+            allRecipesData.push(gr);
+        }
+    });
 
     // Sort recipes by date if available, otherwise by title
     return allRecipesData.sort((a, b) => {
