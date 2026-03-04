@@ -3,8 +3,11 @@ export async function commitToGithub(path: string, content: string, message: str
     const GITHUB_REPO = process.env.GITHUB_REPO; // e.g. "username/repo"
     const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
-    if (!GITHUB_TOKEN || !GITHUB_REPO) {
-        throw new Error('GITHUB_TOKEN and GITHUB_REPO environment variables are required.');
+    if (!GITHUB_TOKEN) {
+        throw new Error('Environment variable GITHUB_TOKEN is missing in Vercel.');
+    }
+    if (!GITHUB_REPO) {
+        throw new Error('Environment variable GITHUB_REPO is missing (should be e.g. username/repo).');
     }
 
     // 1. Get the current file SHA (if it exists) to update it
