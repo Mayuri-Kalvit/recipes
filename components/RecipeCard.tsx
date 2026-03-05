@@ -20,6 +20,16 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                         {recipe.protein_source}
                     </div>
                 )}
+
+                {recipe.author && (
+                    <div className="absolute top-3 right-3 z-10">
+                        <div className="bg-white/90 dark:bg-zinc-950/90 backdrop-blur-sm px-3 py-1.5 rounded-md shadow-sm border border-zinc-100 dark:border-zinc-800">
+                            <p className="text-[9px] uppercase tracking-widest font-semibold text-zinc-900 dark:text-zinc-100">
+                                {recipe.author}
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="space-y-2">
@@ -30,11 +40,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                 <h3 className="text-xl font-serif font-medium text-zinc-900 dark:text-zinc-100 group-hover:underline underline-offset-4 decoration-zinc-200 dark:decoration-zinc-800">
                     {recipe.title}
                 </h3>
-                {recipe.author && (
-                    <p className="text-[10px] uppercase tracking-widest text-zinc-400">
-                        By <span className="text-zinc-600 dark:text-zinc-400 italic font-serif lowercase tracking-normal">{recipe.author}</span>
-                    </p>
-                )}
                 {recipe.author_note && (
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 font-light italic line-clamp-1 mt-1">
                         "{recipe.author_note}"
