@@ -3,9 +3,14 @@ import { cookies } from 'next/headers';
 const ADMIN_COOKIE_NAME = 'mayri_recipe_admin';
 
 export async function isAdmin() {
+    const password = process.env.ADMIN_PASSWORD;
+    if (!password) {
+        console.error('CRITICAL: ADMIN_PASSWORD environment variable is not set.');
+        return false;
+    }
     const cookieStore = await cookies();
     const adminToken = cookieStore.get(ADMIN_COOKIE_NAME);
-    return adminToken?.value === process.env.ADMIN_PASSWORD;
+    return adminToken?.value === password;
 }
 
 export async function login(password: string) {
