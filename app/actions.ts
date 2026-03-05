@@ -135,6 +135,19 @@ export async function submitRecipe(formData: FormData) {
         const meal_types = formData.getAll('meal_types') as string[];
         const ingredients = formData.get('ingredients') as string;
         const instructions = formData.get('instructions') as string;
+        const author = formData.get('author') as string || 'Community Member';
+        const author_note = formData.get('author_note') as string || '';
+
+        // Image handling for submission
+        const imageFile = formData.get('image') as File | null;
+        let image_url = null;
+
+        if (imageFile && imageFile.size > 0) {
+            const uploadedUrl = await handleImageUpload(imageFile, `submission-${slug}`);
+            if (uploadedUrl) {
+                image_url = uploadedUrl;
+            }
+        }
 
         const content = `
 ## Ingredients
@@ -156,8 +169,10 @@ time_minutes: 0
 servings: 1
 tags: []
 meal_types: ${JSON.stringify(meal_types)}
-image_url: null
+image_url: ${image_url ? `"${image_url}"` : "null"}
 date: "${date}"
+author: "${author}"
+author_note: "${author_note}"
 ---
 ${content}
 `;
@@ -194,6 +209,8 @@ tags: ${JSON.stringify(recipeData.tags || [])}
 meal_types: ${JSON.stringify(recipeData.meal_types || [])}
 image_url: ${recipeData.image_url ? `"${recipeData.image_url}"` : "null"}
 date: "${new Date().toISOString().split('T')[0]}"
+author: "${recipeData.author || ''}"
+author_note: "${recipeData.author_note || ''}"
 ---
 ## Ingredients
 ${recipeData.content.split('## Instructions')[0].replace('## Ingredients', '').trim()}

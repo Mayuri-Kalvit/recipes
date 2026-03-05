@@ -36,6 +36,11 @@ export default async function SuggestionsPage() {
                         <div key={recipe.path} className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                             <div className="p-8 sm:p-12">
                                 <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+                                    {recipe.image_url && (
+                                        <div className="w-full md:w-48 aspect-square rounded-2xl overflow-hidden border border-zinc-50 dark:border-zinc-900 flex-shrink-0">
+                                            <img src={recipe.image_url} alt={recipe.title} className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
                                     <div className="flex-1 space-y-6">
                                         <div className="space-y-2 text-center md:text-left">
                                             <div className="flex items-center gap-3 justify-center md:justify-start">
@@ -47,6 +52,11 @@ export default async function SuggestionsPage() {
                                             <h2 className="text-3xl font-serif italic text-zinc-900 dark:text-zinc-100 leading-tight">
                                                 {recipe.title}
                                             </h2>
+                                            {recipe.author && (
+                                                <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 mt-2">
+                                                    Submitted by <span className="text-zinc-900 dark:text-zinc-100 italic font-serif lowercase tracking-normal">{recipe.author}</span>
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 py-6 border-y border-zinc-50 dark:border-zinc-900">
@@ -59,12 +69,14 @@ export default async function SuggestionsPage() {
                                                 <p className="text-zinc-900 dark:text-zinc-100 font-light">{recipe.protein_grams}g</p>
                                             </div>
                                             <div>
-                                                <p className="text-[10px] uppercase tracking-widest text-zinc-400 mb-1">Time</p>
-                                                <p className="text-zinc-900 dark:text-zinc-100 font-light">—</p>
+                                                <p className="text-[10px] uppercase tracking-widest text-zinc-400 mb-1">Diet</p>
+                                                <p className="text-zinc-900 dark:text-zinc-100 font-light">{recipe.protein_source}</p>
                                             </div>
                                             <div>
-                                                <p className="text-[10px] uppercase tracking-widest text-zinc-400 mb-1">Author</p>
-                                                <p className="text-zinc-900 dark:text-zinc-100 font-light">Community</p>
+                                                <p className="text-[10px] uppercase tracking-widest text-zinc-400 mb-1">Note</p>
+                                                <p className="text-zinc-500 dark:text-zinc-400 font-light italic text-[11px] leading-tight line-clamp-2">
+                                                    "{recipe.author_note || 'No note'}"
+                                                </p>
                                             </div>
                                         </div>
 

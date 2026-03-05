@@ -150,6 +150,8 @@ export async function getPendingSubmissions(): Promise<RecipeFrontmatter[]> {
                 tags: Array.isArray(data.tags) ? data.tags : [],
                 meal_types: Array.isArray(data.meal_types) ? data.meal_types : [],
                 date: data.date || '',
+                author: data.author || '',
+                author_note: data.author_note || '',
                 path: file.path // Store path for approval/rejection actions
             } as RecipeFrontmatter & { path: string };
         }));

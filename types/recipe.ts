@@ -12,6 +12,8 @@ export interface RecipeFrontmatter {
     meal_types: string[];
     image_url?: string;
     date?: string;
+    author?: string;
+    author_note?: string;
 }
 
 export interface Recipe extends RecipeFrontmatter {

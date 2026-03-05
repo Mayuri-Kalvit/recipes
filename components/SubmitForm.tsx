@@ -13,6 +13,19 @@ export default function SubmitForm() {
     const [isPending, setIsPending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [authorNote, setAuthorNote] = useState('');
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -71,6 +84,34 @@ export default function SubmitForm() {
     return (
         <form onSubmit={handleSubmit} className="space-y-16 max-w-3xl mx-auto py-12">
             <div className="space-y-12">
+                {/* Photo Upload */}
+                <section className="space-y-4">
+                    <label className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 block">Recipe Photo</label>
+                    <div className="relative aspect-video w-full rounded-2xl border-2 border-dashed border-zinc-100 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/50 flex flex-col items-center justify-center overflow-hidden group hover:border-zinc-200 dark:hover:border-zinc-800 transition-colors">
+                        {imagePreview ? (
+                            <>
+                                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <label className="cursor-pointer bg-white/20 backdrop-blur-md px-6 py-3 rounded-full text-white text-[10px] uppercase tracking-widest font-medium hover:bg-white/30 transition-all">
+                                        Change Photo
+                                        <input name="image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                                    </label>
+                                </div>
+                            </>
+                        ) : (
+                            <label className="cursor-pointer flex flex-col items-center gap-4 group/label">
+                                <div className="p-4 rounded-full bg-white dark:bg-zinc-800 shadow-sm group-hover/label:scale-110 transition-transform">
+                                    <Camera size={24} className="text-zinc-400" />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm font-light text-zinc-500">Click to upload your dish</p>
+                                    <input name="image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                                </div>
+                            </label>
+                        )}
+                    </div>
+                </section>
+
                 {/* Title */}
                 <section className="space-y-4">
                     <label className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 block">Recipe Title</label>
@@ -81,6 +122,35 @@ export default function SubmitForm() {
                         className="w-full bg-transparent border-b border-zinc-200 dark:border-zinc-800 py-4 focus:border-zinc-900 dark:focus:border-zinc-100 text-3xl font-serif italic outline-none transition-colors"
                     />
                 </section>
+
+                {/* Author Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
+                    <section className="space-y-4">
+                        <label className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 block">Your Name</label>
+                        <input
+                            name="author"
+                            required
+                            placeholder="How should you be credited?"
+                            className="w-full bg-transparent border-b border-zinc-200 dark:border-zinc-800 py-2 focus:border-zinc-900 dark:focus:border-zinc-100 text-sm outline-none transition-colors"
+                        />
+                    </section>
+
+                    <section className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 block">Personal Note</label>
+                            <span className="text-[10px] text-zinc-300">{authorNote.length}/100</span>
+                        </div>
+                        <input
+                            name="author_note"
+                            required
+                            maxLength={100}
+                            value={authorNote}
+                            onChange={(e) => setAuthorNote(e.target.value)}
+                            placeholder="What do you love about this dish?"
+                            className="w-full bg-transparent border-b border-zinc-200 dark:border-zinc-800 py-2 focus:border-zinc-900 dark:focus:border-zinc-100 text-sm outline-none transition-colors"
+                        />
+                    </section>
+                </div>
 
                 {/* Categories & Protein */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
