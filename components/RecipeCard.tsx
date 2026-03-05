@@ -30,6 +30,16 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
                 <h3 className="text-xl font-serif font-medium text-zinc-900 dark:text-zinc-100 group-hover:underline underline-offset-4 decoration-zinc-200 dark:decoration-zinc-800">
                     {recipe.title}
                 </h3>
+                {recipe.author && (
+                    <p className="text-[10px] uppercase tracking-widest text-zinc-400">
+                        By <span className="text-zinc-600 dark:text-zinc-400 italic font-serif lowercase tracking-normal">{recipe.author}</span>
+                    </p>
+                )}
+                {recipe.author_note && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-light italic line-clamp-1 mt-1">
+                        "{recipe.author_note}"
+                    </p>
+                )}
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 font-light italic">
                     {recipe.protein_grams}g protein
                 </p>

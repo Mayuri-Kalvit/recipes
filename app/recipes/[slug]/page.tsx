@@ -74,16 +74,20 @@ export default async function RecipePage({ params }: PageProps) {
                         </h1>
 
                         {(recipe.author || recipe.author_note) && (
-                            <div className="pt-4 space-y-2">
-                                {recipe.author && (
-                                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400">
-                                        Recipe by <span className="text-zinc-900 dark:text-zinc-100 italic font-serif lowercase tracking-normal">{recipe.author}</span>
-                                    </p>
-                                )}
+                            <div className="pt-8 space-y-4 max-w-lg mx-auto">
                                 {recipe.author_note && (
-                                    <p className="text-sm font-serif italic text-zinc-500 max-w-lg mx-auto leading-relaxed">
+                                    <p className="text-lg font-serif italic text-zinc-600 dark:text-zinc-400 leading-relaxed">
                                         "{recipe.author_note}"
                                     </p>
+                                )}
+                                {recipe.author && (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <div className="h-px w-8 bg-zinc-100 dark:bg-zinc-800"></div>
+                                        <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-400">
+                                            Contributed by <span className="text-zinc-900 dark:text-zinc-100 font-medium">{recipe.author}</span>
+                                        </p>
+                                        <div className="h-px w-8 bg-zinc-100 dark:bg-zinc-800"></div>
+                                    </div>
                                 )}
                             </div>
                         )}
