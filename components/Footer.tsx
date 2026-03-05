@@ -25,12 +25,12 @@ export default async function Footer() {
 
                 <div className="flex flex-col items-center gap-4">
                     <p className="text-[10px] uppercase tracking-[0.4em] text-zinc-300 dark:text-zinc-800 font-light italic">
-                        &copy; {new Date().getFullYear()} Mayri' Recipes
+                        <Link href="/admin" className="hover:text-zinc-400 transition-colors">&copy;</Link> {new Date().getFullYear()} Mayri' Recipes
                     </p>
 
                     {/* Subtle Admin Access */}
-                    <div className="mt-4 opacity-5 hover:opacity-100 transition-all duration-700">
-                        {isUserAdmin ? (
+                    <div className="mt-4 opacity-10 hover:opacity-100 transition-all duration-700">
+                        {isUserAdmin && (
                             <div className="flex items-center gap-6">
                                 <Link href="/admin/suggestions" className="text-[9px] uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
                                     Queue
@@ -44,10 +44,6 @@ export default async function Footer() {
                                     </button>
                                 </form>
                             </div>
-                        ) : (
-                            <Link href="/admin" className="text-[7px] uppercase tracking-widest text-zinc-100 dark:text-zinc-900">
-                                .
-                            </Link>
                         )}
                     </div>
                 </div>
