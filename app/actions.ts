@@ -71,11 +71,20 @@ export async function saveRecipe(formData: FormData, existingSlug?: string) {
         let image_url = formData.get('existing_image_url') as string | null;
 
         if (imageFile && imageFile.size > 0) {
+            console.log(`[SAVE] Uploading new image for ${slug}...`);
             const uploadedUrl = await handleImageUpload(imageFile, slug);
             if (uploadedUrl) {
+                console.log(`[SAVE] Image uploaded successfully: ${uploadedUrl}`);
                 image_url = uploadedUrl;
+            } else {
+                console.error('[SAVE] Image upload failed');
             }
+        } else {
+            console.log('[SAVE] No new image file provided, using existing or null');
         }
+
+        const author = formData.get('author') as string || '';
+        const author_note = formData.get('author_note') as string || '';
 
         const content = `
 ## Ingredients
@@ -99,6 +108,8 @@ tags: ${JSON.stringify(tags)}
 meal_types: ${JSON.stringify(meal_types)}
 image_url: ${image_url ? `"${image_url}"` : "null"}
 date: "${date}"
+author: "${author}"
+author_note: "${author_note}"
 ---
 ${content}
 `;
