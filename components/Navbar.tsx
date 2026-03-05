@@ -28,6 +28,12 @@ export default async function Navbar() {
                         >
                             Plan
                         </Link>
+                        <Link
+                            href="/submit-recipe"
+                            className="hidden sm:block px-6 py-2 border border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100 rounded-full text-xs font-medium uppercase tracking-widest hover:bg-zinc-900 hover:text-white dark:hover:bg-zinc-100 dark:hover:text-zinc-900 transition-all"
+                        >
+                            Submit a Recipe
+                        </Link>
                     </div>
                 </div>
             </div>
