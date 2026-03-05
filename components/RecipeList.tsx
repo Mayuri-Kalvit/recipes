@@ -28,7 +28,7 @@ export default function RecipeList({ initialRecipes, proteinSources }: RecipeLis
     const filteredRecipes = useMemo(() => {
         let result = initialRecipes.filter((recipe) => {
             const matchesSearch = recipe.title.toLowerCase().includes(search.toLowerCase());
-            const matchesProtein = protein === '' || recipe.protein_source === protein;
+            const matchesProtein = protein === '' || recipe.protein_source.toLowerCase() === protein.toLowerCase();
             const matchesMinCals = minCals === '' || recipe.calories >= parseInt(minCals);
             const matchesMaxCals = maxCals === '' || recipe.calories <= parseInt(maxCals);
             const matchesMealTypes = mealTypes.length === 0 || mealTypes.some(type => recipe.meal_types?.includes(type));

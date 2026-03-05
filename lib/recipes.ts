@@ -94,7 +94,12 @@ export async function getAllRecipes(): Promise<RecipeFrontmatter[]> {
 
 export async function getProteinSources(): Promise<string[]> {
     const recipes = await getAllRecipes();
-    const sources = new Set(recipes.map(r => r.protein_source).filter(Boolean));
+    const sources = new Set(
+        recipes
+            .map(r => r.protein_source)
+            .filter(Boolean)
+            .map(s => s.trim().charAt(0).toUpperCase() + s.trim().slice(1)) // Simple title casing
+    );
     return Array.from(sources).sort();
 }
 
