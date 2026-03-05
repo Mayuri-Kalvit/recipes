@@ -85,12 +85,24 @@ export default async function SuggestionsPage() {
                                     </div>
 
                                     <div className="w-full md:w-auto flex flex-row md:flex-col gap-3 pt-4 border-t md:border-t-0 md:border-l border-zinc-50 dark:border-zinc-900 md:pl-8">
-                                        <form action={approveSubmission.bind(null, recipe.path, recipe)} className="flex-1 md:w-32">
+                                        <form
+                                            action={async () => {
+                                                "use server";
+                                                await approveSubmission(recipe.path, recipe);
+                                            }}
+                                            className="flex-1 md:w-32"
+                                        >
                                             <button className="w-full py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-full text-[10px] font-medium uppercase tracking-widest hover:scale-105 transition-all flex items-center justify-center gap-2 shadow-sm">
                                                 <Check size={14} /> Approve
                                             </button>
                                         </form>
-                                        <form action={rejectSubmission.bind(null, recipe.path)} className="flex-1 md:w-32">
+                                        <form
+                                            action={async () => {
+                                                "use server";
+                                                await rejectSubmission(recipe.path);
+                                            }}
+                                            className="flex-1 md:w-32"
+                                        >
                                             <button className="w-full py-3 border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-full text-[10px] font-medium uppercase tracking-widest hover:scale-105 transition-all flex items-center justify-center gap-2">
                                                 <X size={14} /> Reject
                                             </button>
