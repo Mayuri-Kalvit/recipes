@@ -191,12 +191,15 @@ ${content}
 }
 
 export async function approveSubmission(submissionPath: string, recipeData: any) {
+    console.log(`[APPROVE] Starting approval for: ${recipeData.title} at ${submissionPath}`);
     if (!await isAdmin()) {
+        console.warn('[APPROVE] Unauthorized attempt.');
         return { success: false, error: 'Unauthorized.' };
     }
 
     try {
         const slug = recipeData.slug;
+        console.log(`[APPROVE] Committing to content/recipes/${slug}.mdx`);
         const mdxContent = `---
 title: "${recipeData.title}"
 slug: "${slug}"
@@ -213,32 +216,42 @@ author: "${recipeData.author || ''}"
 author_note: "${recipeData.author_note || ''}"
 ---
 ## Ingredients
-${recipeData.content.split('## Instructions')[0].replace('## Ingredients', '').trim()}
+${recipeData.content.split(/## Instructions/i)[0].replace(/## Ingredients/i, '').trim()}
 
 ## Instructions
-${recipeData.content.split('## Instructions')[1]?.trim() || ''}
+${recipeData.content.split(/## Instructions/i)[1]?.trim() || 'Instructions not provided.'}
 `;
 
         await commitToGithub(`content/recipes/${slug}.mdx`, mdxContent, `Approve submission: ${recipeData.title}`);
+        console.log(`[APPROVE] Deleting submission from ${submissionPath}`);
         await deleteFromGithub(submissionPath, `Internal: Move approved submission`);
 
+        console.log('[APPROVE] Revalidating paths...');
         revalidatePath('/');
         revalidatePath('/admin/suggestions');
+        console.log('[APPROVE] Success!');
         return { success: true };
     } catch (error) {
-        console.error('Approve failure:', error);
+        console.error('[APPROVE] failure:', error);
         return { success: false, error: 'Failed to approve.' };
     }
 }
 
 export async function rejectSubmission(submissionPath: string) {
-    if (!await isAdmin()) return { success: false, error: 'Unauthorized.' };
+    console.log(`[REJECT] Deleting submission at ${submissionPath}`);
+    if (!await isAdmin()) {
+        console.warn('[REJECT] Unauthorized attempt.');
+        return { success: false, error: 'Unauthorized.' };
+    }
 
     try {
         await deleteFromGithub(submissionPath, `Reject submission`);
+        console.log('[REJECT] Revalidating path...');
         revalidatePath('/admin/suggestions');
+        console.log('[REJECT] Success!');
         return { success: true };
     } catch (error) {
+        console.error('[REJECT] failure:', error);
         return { success: false, error: 'Failed to delete submission.' };
     }
 }
