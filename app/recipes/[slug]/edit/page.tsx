@@ -1,12 +1,17 @@
 import { getRecipeBySlug } from "@/lib/recipes";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import RecipeForm from "@/components/RecipeForm";
+import { isAdmin } from "@/lib/auth";
 
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
 
 export default async function EditRecipePage({ params }: PageProps) {
+    if (!await isAdmin()) {
+        redirect('/admin');
+    }
+
     const { slug } = await params;
     const recipe = await getRecipeBySlug(slug);
 

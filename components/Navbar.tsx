@@ -26,6 +26,12 @@ export default async function Navbar() {
                         {isUserAdmin ? (
                             <div className="flex items-center gap-4 sm:gap-6 border-l border-zinc-100 dark:border-zinc-800 pl-4 sm:pl-6 ml-2">
                                 <Link
+                                    href="/admin/suggestions"
+                                    className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mr-4"
+                                >
+                                    Suggestions
+                                </Link>
+                                <Link
                                     href="/add-recipe"
                                     className="px-4 py-1.5 sm:px-6 sm:py-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 rounded-full text-[10px] sm:text-xs font-medium uppercase tracking-widest hover:scale-105 transition-all"
                                 >
@@ -38,12 +44,20 @@ export default async function Navbar() {
                                 </form>
                             </div>
                         ) : (
-                            <Link
-                                href="/admin"
-                                className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-                            >
-                                Admin
-                            </Link>
+                            <div className="flex items-center gap-4 sm:gap-8">
+                                <Link
+                                    href="/submit-recipe"
+                                    className="px-4 py-1.5 sm:px-6 sm:py-2 border border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100 rounded-full text-[10px] sm:text-xs font-medium uppercase tracking-widest hover:bg-zinc-900 hover:text-white dark:hover:bg-zinc-100 dark:hover:text-zinc-900 transition-all"
+                                >
+                                    Submit a Recipe
+                                </Link>
+                                <Link
+                                    href="/admin"
+                                    className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                                >
+                                    Admin
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </div>

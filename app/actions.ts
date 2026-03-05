@@ -119,6 +119,113 @@ ${content}
     }
 }
 
+export async function submitRecipe(formData: FormData) {
+    try {
+        const title = formData.get('title') as string;
+        if (!title) throw new Error('Title is required');
+
+        const slug = title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]/g, '');
+
+        const proteinSelect = formData.get('protein_source_select') as string;
+        const proteinCustom = formData.get('protein_source_custom') as string;
+        const protein_source = proteinSelect === 'other' ? proteinCustom : proteinSelect;
+
+        const calories = parseInt(formData.get('calories') as string) || 0;
+        const protein_grams = parseInt(formData.get('protein_grams') as string) || 0;
+        const meal_types = formData.getAll('meal_types') as string[];
+        const ingredients = formData.get('ingredients') as string;
+        const instructions = formData.get('instructions') as string;
+
+        const content = `
+## Ingredients
+${ingredients}
+
+## Instructions
+${instructions}
+`;
+
+        const date = new Date().toISOString().split('T')[0];
+
+        const mdxContent = `---
+title: "${title}"
+slug: "${slug}"
+protein_source: "${protein_source}"
+calories: ${calories}
+protein_grams: ${protein_grams}
+time_minutes: 0
+servings: 1
+tags: []
+meal_types: ${JSON.stringify(meal_types)}
+image_url: null
+date: "${date}"
+---
+${content}
+`;
+
+        const githubPath = `content/submissions/${slug}-${Date.now()}.mdx`;
+        await commitToGithub(githubPath, mdxContent, `User Submission: ${title}`);
+
+        return { success: true };
+    } catch (error) {
+        console.error('Submit Recipe Failure:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to submit recipe.'
+        };
+    }
+}
+
+export async function approveSubmission(submissionPath: string, recipeData: any) {
+    if (!await isAdmin()) {
+        return { success: false, error: 'Unauthorized.' };
+    }
+
+    try {
+        const slug = recipeData.slug;
+        const mdxContent = `---
+title: "${recipeData.title}"
+slug: "${slug}"
+protein_source: "${recipeData.protein_source}"
+calories: ${recipeData.calories}
+protein_grams: ${recipeData.protein_grams}
+time_minutes: ${recipeData.time_minutes || 0}
+servings: ${recipeData.servings || 1}
+tags: ${JSON.stringify(recipeData.tags || [])}
+meal_types: ${JSON.stringify(recipeData.meal_types || [])}
+image_url: ${recipeData.image_url ? `"${recipeData.image_url}"` : "null"}
+date: "${new Date().toISOString().split('T')[0]}"
+---
+## Ingredients
+${recipeData.content.split('## Instructions')[0].replace('## Ingredients', '').trim()}
+
+## Instructions
+${recipeData.content.split('## Instructions')[1]?.trim() || ''}
+`;
+
+        await commitToGithub(`content/recipes/${slug}.mdx`, mdxContent, `Approve submission: ${recipeData.title}`);
+        await deleteFromGithub(submissionPath, `Internal: Move approved submission`);
+
+        revalidatePath('/');
+        revalidatePath('/admin/suggestions');
+        return { success: true };
+    } catch (error) {
+        console.error('Approve failure:', error);
+        return { success: false, error: 'Failed to approve.' };
+    }
+}
+
+export async function rejectSubmission(submissionPath: string) {
+    if (!await isAdmin()) return { success: false, error: 'Unauthorized.' };
+
+    try {
+        await deleteFromGithub(submissionPath, `Reject submission`);
+        revalidatePath('/admin/suggestions');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: 'Failed to delete submission.' };
+    }
+}
+
 export async function deleteRecipe(slug: string) {
     if (!await isAdmin()) {
         return { success: false, error: 'Unauthorized: Admin access required.' };

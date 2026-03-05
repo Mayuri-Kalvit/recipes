@@ -1,11 +1,17 @@
 import RecipeForm from "@/components/RecipeForm";
+import { isAdmin } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function AddRecipePage() {
+export default async function AddRecipePage() {
+    if (!await isAdmin()) {
+        redirect('/admin');
+    }
+
     return (
         <div className="max-w-4xl mx-auto py-8">
             <div className="mb-12 text-center">
                 <h1 className="text-4xl font-light text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">Add Recipe</h1>
-                <p className="text-zinc-500 font-light">
+                <p className="text-zinc-500 font-light text-lg">
                     Contribute a new minimalist recipe to the collection.
                 </p>
             </div>

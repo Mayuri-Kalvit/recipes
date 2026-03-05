@@ -103,6 +103,64 @@ export async function getProteinSources(): Promise<string[]> {
     return Array.from(sources).sort();
 }
 
+/**
+ * Fetches pending submissions from GitHub content/submissions directory
+ */
+export async function getPendingSubmissions(): Promise<RecipeFrontmatter[]> {
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    const GITHUB_REPO = process.env.GITHUB_REPO;
+    const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
+
+    if (!GITHUB_TOKEN || !GITHUB_REPO) {
+        console.warn('GITHUB_TOKEN or GITHUB_REPO not configured. Cannot fetch submissions.');
+        return [];
+    }
+
+    try {
+        const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/content/submissions?ref=${GITHUB_BRANCH}`;
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                'Accept': 'application/vnd.github.v3+json',
+            },
+            next: { revalidate: 0 } // Always fresh
+        });
+
+        if (response.status === 404) return [];
+        if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+
+        const files = await response.json() as any[];
+        const mdxFiles = files.filter(f => f.name.endsWith('.mdx'));
+
+        const submissions = await Promise.all(mdxFiles.map(async (file) => {
+            const contentResponse = await fetch(file.download_url);
+            const content = await contentResponse.text();
+            const { data, content: mdxBody } = matter(content);
+
+            return {
+                title: data.title || '',
+                protein_source: data.protein_source || '',
+                calories: data.calories || 0,
+                protein_grams: data.protein_grams || 0,
+                time_minutes: data.time_minutes || 0,
+                servings: data.servings || 1,
+                image_url: data.image_url,
+                slug: data.slug || file.name.replace('.mdx', ''),
+                content: mdxBody,
+                tags: Array.isArray(data.tags) ? data.tags : [],
+                meal_types: Array.isArray(data.meal_types) ? data.meal_types : [],
+                date: data.date || '',
+                path: file.path // Store path for approval/rejection actions
+            } as RecipeFrontmatter & { path: string };
+        }));
+
+        return submissions;
+    } catch (error) {
+        console.error('Error fetching submissions from GitHub:', error);
+        return [];
+    }
+}
+
 export async function getRecipeBySlug(slug: string): Promise<Recipe | null> {
     try {
         const fullPath = path.join(recipesDirectory, `${slug}.mdx`);
