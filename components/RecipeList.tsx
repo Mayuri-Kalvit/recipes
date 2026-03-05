@@ -18,6 +18,12 @@ export default function RecipeList({ initialRecipes, proteinSources }: RecipeLis
     const [maxCals, setMaxCals] = useState('');
     const [mealTypes, setMealTypes] = useState<string[]>([]);
     const [sort, setSort] = useState('newest');
+    const [dietary, setDietary] = useState('all');
+
+    const isVeg = (source: string) => {
+        const vegSources = ['Tofu', 'Tempeh', 'Seitan', 'Beans', 'Lentils', 'Chickpeas', 'Egg', 'Eggs', 'Whey', 'PB', 'Peanut', 'Greek Yogurt', 'Protein Powder', 'Pea Protein', 'Edamame', 'Cheese', 'Cottage Cheese'];
+        return vegSources.some(s => source.toLowerCase().includes(s.toLowerCase()));
+    };
 
     const filteredRecipes = useMemo(() => {
         let result = initialRecipes.filter((recipe) => {
@@ -27,7 +33,12 @@ export default function RecipeList({ initialRecipes, proteinSources }: RecipeLis
             const matchesMaxCals = maxCals === '' || recipe.calories <= parseInt(maxCals);
             const matchesMealTypes = mealTypes.length === 0 || mealTypes.some(type => recipe.meal_types?.includes(type));
 
-            return matchesSearch && matchesProtein && matchesMinCals && matchesMaxCals && matchesMealTypes;
+            const recipeIsVeg = isVeg(recipe.protein_source);
+            const matchesDietary = dietary === 'all' ||
+                (dietary === 'veg' && recipeIsVeg) ||
+                (dietary === 'non-veg' && !recipeIsVeg);
+
+            return matchesSearch && matchesProtein && matchesMinCals && matchesMaxCals && matchesMealTypes && matchesDietary;
         });
 
         result.sort((a, b) => {
@@ -40,7 +51,7 @@ export default function RecipeList({ initialRecipes, proteinSources }: RecipeLis
         });
 
         return result;
-    }, [initialRecipes, search, protein, minCals, maxCals, mealTypes, sort]);
+    }, [initialRecipes, search, protein, minCals, maxCals, mealTypes, sort, dietary]);
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-16 gap-y-12">
@@ -54,6 +65,8 @@ export default function RecipeList({ initialRecipes, proteinSources }: RecipeLis
                     proteinSources={proteinSources}
                     mealTypes={mealTypes}
                     setMealTypes={setMealTypes}
+                    dietary={dietary}
+                    setDietary={setDietary}
                 />
             </aside>
 

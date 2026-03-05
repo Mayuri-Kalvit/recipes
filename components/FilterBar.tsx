@@ -17,6 +17,8 @@ interface FilterBarProps {
     proteinSources: string[];
     mealTypes: string[];
     setMealTypes: (val: string[]) => void;
+    dietary: string;
+    setDietary: (val: string) => void;
 }
 
 export default function FilterBar({
@@ -27,7 +29,9 @@ export default function FilterBar({
     sort, setSort,
     proteinSources,
     mealTypes,
-    setMealTypes
+    setMealTypes,
+    dietary,
+    setDietary
 }: FilterBarProps) {
     const clearFilters = () => {
         setSearch('');
@@ -36,6 +40,7 @@ export default function FilterBar({
         setMaxCals('');
         setSort('newest');
         setMealTypes([]);
+        setDietary('all');
     };
 
     const toggleMealType = (type: string) => {
@@ -66,6 +71,22 @@ export default function FilterBar({
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full bg-transparent border-b border-zinc-200 dark:border-zinc-800 py-2 focus:border-zinc-900 dark:focus:border-zinc-100 text-sm placeholder:text-zinc-300 dark:placeholder:text-zinc-700 transition-colors outline-none"
                     />
+                </div>
+
+                {/* Dietary Preference */}
+                <div>
+                    <label className="text-[10px] font-medium uppercase tracking-widest text-zinc-400 block mb-3">Dietary</label>
+                    <div className="flex bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1">
+                        {(['all', 'veg', 'non-veg'] as const).map((pref) => (
+                            <button
+                                key={pref}
+                                onClick={() => setDietary(pref)}
+                                className={`flex-1 text-[10px] py-2 rounded-md transition-all uppercase tracking-widest ${dietary === pref ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
+                            >
+                                {pref}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Protein Filter */}
