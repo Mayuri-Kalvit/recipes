@@ -11,54 +11,23 @@ export default async function Navbar() {
                 <div className="flex justify-between items-center h-20">
                     <Link href="/" className="flex items-center gap-3 group">
                         <span className="text-2xl font-serif tracking-tight text-zinc-900 dark:text-zinc-100 italic group-hover:opacity-70 transition-opacity">
-                            Mayri's Recipes
+                            Mayri' Recipes
                         </span>
                     </Link>
 
-                    <div className="flex items-center gap-4 sm:gap-8">
+                    <div className="flex items-center gap-4 sm:gap-12">
                         <Link
-                            href="/"
-                            className="text-xs sm:text-sm uppercase tracking-widest text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                            href="/about"
+                            className="text-xs sm:text-sm uppercase tracking-[0.2em] text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all font-light"
                         >
-                            Catalog
+                            About
                         </Link>
-
-                        {isUserAdmin ? (
-                            <div className="flex items-center gap-4 sm:gap-6 border-l border-zinc-100 dark:border-zinc-800 pl-4 sm:pl-6 ml-2">
-                                <Link
-                                    href="/admin/suggestions"
-                                    className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mr-4"
-                                >
-                                    Suggestions
-                                </Link>
-                                <Link
-                                    href="/add-recipe"
-                                    className="px-4 py-1.5 sm:px-6 sm:py-2 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 rounded-full text-[10px] sm:text-xs font-medium uppercase tracking-widest hover:scale-105 transition-all"
-                                >
-                                    Add Recipe
-                                </Link>
-                                <form action={handleLogout}>
-                                    <button className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-zinc-400 hover:text-red-500 transition-colors">
-                                        Logout
-                                    </button>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-4 sm:gap-8">
-                                <Link
-                                    href="/submit-recipe"
-                                    className="px-4 py-1.5 sm:px-6 sm:py-2 border border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100 rounded-full text-[10px] sm:text-xs font-medium uppercase tracking-widest hover:bg-zinc-900 hover:text-white dark:hover:bg-zinc-100 dark:hover:text-zinc-900 transition-all"
-                                >
-                                    Submit a Recipe
-                                </Link>
-                                <Link
-                                    href="/admin"
-                                    className="text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-                                >
-                                    Admin
-                                </Link>
-                            </div>
-                        )}
+                        <Link
+                            href="/plan"
+                            className="text-xs sm:text-sm uppercase tracking-[0.2em] text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all font-light"
+                        >
+                            Plan
+                        </Link>
                     </div>
                 </div>
             </div>
