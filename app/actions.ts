@@ -290,15 +290,30 @@ export async function calculateNutrition(formData: FormData) {
     const height = Number(formData.get('height'));
     const age = Number(formData.get('age'));
     const sex = formData.get('sex') as 'male' | 'female';
-    const activityLevel = formData.get('activityLevel') as 'sedentary' | 'light' | 'moderate' | 'very-active';
+    const activityLevel = formData.get('activityLevel') as 'sedentary' | 'light' | 'moderate' | 'very-active' | 'extra-active';
     const strengthTraining = formData.get('strengthTraining') === 'true';
+    const bodyFatStr = formData.get('bodyFat');
+    const bodyFat = bodyFatStr ? Number(bodyFatStr) : null;
+    const goal = formData.get('goal') as 'maintain' | 'lose_fat' | 'gain';
+    const deficitType = formData.get('deficitType') as '10' | '15' | '20' | '500';
+    const surplusType = formData.get('surplusType') as '5' | '10' | '15';
 
-    // BMR using Mifflin-St Jeor
-    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-    if (sex === 'male') {
-        bmr += 5;
+    // BMR Calculation
+    let bmr: number;
+    let formula_method: string;
+
+    if (bodyFat !== null && !isNaN(bodyFat) && bodyFat > 0) {
+        const leanMass = weight * (1 - bodyFat / 100);
+        bmr = 370 + (21.6 * leanMass);
+        formula_method = 'Katch-McArdle';
     } else {
-        bmr -= 161;
+        bmr = (10 * weight) + (6.25 * height) - (5 * age);
+        if (sex === 'male') {
+            bmr += 5;
+        } else {
+            bmr -= 161;
+        }
+        formula_method = 'Mifflin-St Jeor';
     }
 
     // Activity multipliers
@@ -306,30 +321,76 @@ export async function calculateNutrition(formData: FormData) {
         'sedentary': 1.2,
         'light': 1.375,
         'moderate': 1.55,
-        'very-active': 1.725
+        'very-active': 1.725,
+        'extra-active': 1.9
     };
-    const tdee = bmr * multipliers[activityLevel];
+    const maintenance_calories = bmr * multipliers[activityLevel];
 
-    // Protein target
-    const protein_target_g = strengthTraining ? weight * 1.2 : weight;
+    // Goal Calories
+    let goal_calories: number;
+    if (goal === 'maintain') {
+        goal_calories = maintenance_calories;
+    } else if (goal === 'lose_fat') {
+        let deficitValue: number;
+        if (deficitType === '500') {
+            deficitValue = 500;
+        } else {
+            deficitValue = maintenance_calories * (Number(deficitType) / 100);
+        }
 
-    // Daily calorie targets
-    const maintenance_calories = tdee;
-    const muscle_gain_calories = tdee + 250;
+        // Cap deficit at 1000
+        const actualDeficit = Math.min(deficitValue, 1000);
+        goal_calories = maintenance_calories - actualDeficit;
 
-    // Fat loss with floor
-    const minCalories = sex === 'male' ? 1500 : 1200;
-    const fat_loss_calories = Math.max(minCalories, tdee - 500);
+        // Calorie floor
+        const floor = sex === 'male' ? 1500 : 1200;
+        goal_calories = Math.max(goal_calories, floor);
+    } else { // gain
+        const surplusValue = maintenance_calories * (Number(surplusType) / 100);
+        goal_calories = maintenance_calories + surplusValue;
+    }
+
+    // Protein Target & Range
+    let protein_target_g: number;
+    let protein_range_g: string;
+    let explanation_notes: string;
+
+    if (strengthTraining) {
+        if (goal === 'lose_fat') {
+            // Fat loss with lifting
+            protein_target_g = weight * 1.6;
+            protein_range_g = `${Math.round(weight * 1.6)} - ${Math.round(weight * 2.0)}`;
+            explanation_notes = "Higher protein preserves muscle during fat loss. Range: 1.6 - 2.0 g/kg.";
+        } else {
+            // Muscle gain or maintenance with lifting
+            protein_target_g = weight * 1.6;
+            protein_range_g = `${Math.round(weight * 1.6)} - ${Math.round(weight * 2.0)}`;
+            explanation_notes = "Optimal for muscle synthesis. Range: 1.6 - 2.0 g/kg.";
+        }
+    } else {
+        if (goal === 'lose_fat' && activityLevel !== 'sedentary') {
+            // Active fat loss without lifting
+            protein_target_g = weight * 1.2;
+            protein_range_g = `${Math.round(weight * 1.2)} - ${Math.round(weight * 1.4)}`;
+            explanation_notes = "Preserves lean mass for active individuals. Range: 1.2 - 1.4 g/kg.";
+        } else {
+            // Sedentary or general health
+            protein_target_g = weight * 0.8;
+            protein_range_g = `${Math.round(weight * 0.8)} - ${Math.round(weight * 1.0)}`;
+            explanation_notes = "Standard recommendation for general health. Range: 0.8 - 1.0 g/kg.";
+        }
+    }
 
     return {
         success: true,
         results: {
+            formula_method,
             bmr: Math.round(bmr),
-            tdee: Math.round(tdee),
-            protein_target_g: Math.round(protein_target_g),
             maintenance_calories: Math.round(maintenance_calories),
-            fat_loss_calories: Math.round(fat_loss_calories),
-            muscle_gain_calories: Math.round(muscle_gain_calories)
+            goal_calories: Math.round(goal_calories),
+            protein_target_g: Math.round(protein_target_g),
+            protein_range_g,
+            explanation_notes
         }
     };
 }
