@@ -284,3 +284,52 @@ export async function deleteRecipe(slug: string) {
         return { success: false, error: 'Failed to delete recipe.' };
     }
 }
+
+export async function calculateNutrition(formData: FormData) {
+    const weight = Number(formData.get('weight'));
+    const height = Number(formData.get('height'));
+    const age = Number(formData.get('age'));
+    const sex = formData.get('sex') as 'male' | 'female';
+    const activityLevel = formData.get('activityLevel') as 'sedentary' | 'light' | 'moderate' | 'very-active';
+    const strengthTraining = formData.get('strengthTraining') === 'true';
+
+    // BMR using Mifflin-St Jeor
+    let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+    if (sex === 'male') {
+        bmr += 5;
+    } else {
+        bmr -= 161;
+    }
+
+    // Activity multipliers
+    const multipliers = {
+        'sedentary': 1.2,
+        'light': 1.375,
+        'moderate': 1.55,
+        'very-active': 1.725
+    };
+    const tdee = bmr * multipliers[activityLevel];
+
+    // Protein target
+    const protein_target_g = strengthTraining ? weight * 1.2 : weight;
+
+    // Daily calorie targets
+    const maintenance_calories = tdee;
+    const muscle_gain_calories = tdee + 250;
+
+    // Fat loss with floor
+    const minCalories = sex === 'male' ? 1500 : 1200;
+    const fat_loss_calories = Math.max(minCalories, tdee - 500);
+
+    return {
+        success: true,
+        results: {
+            bmr: Math.round(bmr),
+            tdee: Math.round(tdee),
+            protein_target_g: Math.round(protein_target_g),
+            maintenance_calories: Math.round(maintenance_calories),
+            fat_loss_calories: Math.round(fat_loss_calories),
+            muscle_gain_calories: Math.round(muscle_gain_calories)
+        }
+    };
+}
